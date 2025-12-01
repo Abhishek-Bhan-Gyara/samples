@@ -195,43 +195,46 @@ app.listen(3000, () => {
 
 
 
-pipeline {
+pipeline{
     agent any
-
-    tools {
-        maven 'MAVEN_HOME'   // Make sure this name matches Jenkins global tool config
+    tools{
+        maven 'MAVEN_HOME'
     }
-
-    stages {
-
-        stage('Git Repo & Clean') {
-            steps {
-                echo "Cloning repository..."
-
-                bat '''
-                rmdir /s /q webapp 2>nul || echo Directory not found
-                git clone https://github.com/Abhishekgyara/SE_WEEK8_JENKINS_WEBAPP.git webapp
-                '''
+    stages{
+        stage('Git Repo & Clean'){
+            steps{
+                bat """
+                    if exist webapp (
+                        echo Cleaning the existing folder
+                        rmdir /s /q webapp
+                    )
+                    else{
+                        echo no folder found
+                    }
+                    git clone https://github.com/Abhishekgyara/SE_WEEK_8_JENKINS_LAB.git webapp
+                """
             }
         }
-
-        stage('Install') {
-            steps {
+        stage('Build'){
+            steps{
+                bat 'mvn compile -f webapp/pom.xml'
+            }
+        }
+        stage('Install'){
+            steps{
                 bat 'mvn install -f webapp/pom.xml'
             }
         }
-
-        stage('Test') {
-            steps {
+        stage('Test'){
+            steps{
                 bat 'mvn test -f webapp/pom.xml'
             }
         }
-
-        stage('Package') {
-            steps {
+        stage('Package'){
+            steps{
                 bat 'mvn package -f webapp/pom.xml'
             }
         }
+        
     }
 }
-
