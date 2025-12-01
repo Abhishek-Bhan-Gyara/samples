@@ -96,3 +96,97 @@ mysql> select * from emp;
 |   2 | Max  |
 +-----+------+
 2 rows in set (0.00 sec)
+
+
+
+
+
+
+
+
+version: '3.8'
+
+services:
+  nodeapp:
+    image: node:20
+    container_name: nodeapp
+    working_dir: /app
+    volumes:
+      - ./app:/app
+    command: sh -c "npm install && node index.js"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:7.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+
+
+
+const express = require('express');
+const mongoose = require('mongoose');
+
+const app = express();
+app.use(express.json());
+
+// Connect to MongoDB
+mongoose.connect('mongodb://root:rootpassword@mongo:27017/mydb?authSource=admin')
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+// Define a simple schema
+const UserSchema = new mongoose.Schema({
+  name: String,
+  age: Number
+});
+
+const User = mongoose.model('User', UserSchema);
+
+// Routes
+app.get('/', (req, res) => {
+  res.send('Node + MongoDB App Running!');
+});
+
+app.post('/users', async (req, res) => {
+  const user = new User(req.body);
+  await user.save();
+  res.send(user);
+});
+
+app.get('/users', async (req, res) => {
+  const users = await User.find();
+  res.send(users);
+});
+
+// Start server
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
+});
+
+
+
+
+
+{
+  "name": "se_week_6_node_mongo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^5.1.0",
+    "mongoose": "^9.0.0"
+  }
+}
